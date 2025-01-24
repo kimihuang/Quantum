@@ -10,7 +10,7 @@ QEMU_VEXPRESS_A9_DIR="$RTTHREAD_SRC_DIR/bsp/qemu-vexpress-a9"
 # 判断 RTTHREAD_SRC_DIR 是否存在
 if [ ! -d "$RTTHREAD_SRC_DIR" ]; then
     echo "RT-Thread 源码目录不存在，请先执行下载 RT-Thread 源码。\
-        请参考：./scripts/build/download.sh"
+        请参考：./scripts/download.sh"
     exit 1
 fi
 
@@ -33,7 +33,7 @@ scons --defconfig
 scons -c
 
 # 编译 RT-Thread
-scons -j2
+scons -j$(nproc)
 
 # 检查编译结果
 if [ $? -eq 0 ]; then

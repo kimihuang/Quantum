@@ -28,7 +28,12 @@
 
 1. **环境设置**：运行 `source build/envsetup.sh` 来设置构建环境。
 2. **选择目标**：使用 `./scripts/lunch.sh <Target>` 来选择要构建的目标。
-3. **编译**：执行 `make <目标>` 来编译所选目标，例如 `make tf-a`、`make uboot`、`make kernel` 等。
+3. **编译**：
+- **编译 RT-Thread**：运行以下命令来编译 RT-Thread：
+  ```sh
+  ./scripts/build/build_rtthread.sh
+  ```
+  该脚本将自动下载 RT-Thread 源代码并进行编译，生成的二进制文件将存放在 `out/rtt_out` 目录中。
 4. **输出目录**：构建的中间产物将输出到 `build` 目录，最终编译结果将存放在 `out` 目录。
 
 请根据需要修改配置文件和脚本，以适应特定的硬件和软件环境。

@@ -4,7 +4,59 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
+    {
+        "name": "Debug U-Boot",
+        "type": "cppdbg",
+        "request": "launch",
+        "miDebuggerServerAddress": "localhost:1234",
+        "program": "${workspaceFolder}/src/u-boot/u-boot",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb-multiarch",
+        "setupCommands": [
+        {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+        },
+        {
+            "description": "Set architecture",
+            "text": "set architecture aarch64", // 明确设置架构
+            "ignoreFailures": true
+        },
+        {
+            "text": "handle SIGTRAP nostop noprint",
+            "ignoreFailures": true
+        },
+        {
+            "text": "set debug remote 1",
+            "ignoreFailures": true
+        },
+        {
+            "description": "设置远程目标",
+            "text": "set remote exec-file ${workspaceFolder}/src/u-boot/u-boot"
+        },
+        {
+            "description": "设置源码路径",
+            "text": "directory ${workspaceFolder}/src/u-boot"
+        },
+        {
+            "description": "加载调试符号",
+            "text": "symbol-file ${workspaceFolder}/src/u-boot/u-boot"
+        }
+        ],
+        "sourceFileMap": {
+            "/build": "${workspaceFolder}/src/u-boot",
+            "/build/source": "${workspaceFolder}/src/u-boot"
+        },
+        "logging": {
+        "engineLogging": true
+        }
+    },
     {
         "type": "bashdb",
         "request": "launch",

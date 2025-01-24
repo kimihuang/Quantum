@@ -34,6 +34,13 @@
   ./scripts/build/build_rtthread.sh
   ```
   该脚本将自动下载 RT-Thread 源代码并进行编译，生成的二进制文件将存放在 `out/rtt_out` 目录中。
-4. **输出目录**：构建的中间产物将输出到 `build` 目录，最终编译结果将存放在 `out` 目录。
-
-请根据需要修改配置文件和脚本，以适应特定的硬件和软件环境。
+- **编译 U-Boot**：运行以下命令来编译 U-Boot：
+  ```sh
+  ./scripts/build/build_uboot.sh
+  ```
+  该脚本将自动下载 U-Boot 源代码并进行编译，生成的二进制文件将存放在 `out/uboot_out` 目录中。
+- **编译内核**：运行以下命令来编译内核：
+  ```sh
+  ./scripts/build/build_kernel.sh
+  ```
+  该脚本将自动下载内核源代码并进行编译，生成的二进制文件将存放在 `out/kernel_out` 目录中。

@@ -33,7 +33,7 @@ make clean
 make CROSS_COMPILE=aarch64-linux-gnu- qemu_arm64_defconfig
 
 # 配置编译选项
-make CROSS_COMPILE=aarch64-linux-gnu-
+make CROSS_COMPILE=aarch64-linux-gnu-  KCFLAGS="-g"
 
 # 检查编译是否成功
 if [ $? -eq 0 ]; then

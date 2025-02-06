@@ -58,11 +58,6 @@
         "miDebuggerPath": "gdb-multiarch",
         "setupCommands": [
         {
-            "description": "Enable pretty-printing for gdb",
-            "text": "-enable-pretty-printing",
-            "ignoreFailures": true
-        },
-        {
             "description": "Set architecture",
             "text": "set architecture aarch64", // 明确设置架构
             "ignoreFailures": true
@@ -76,10 +71,6 @@
             "ignoreFailures": true
         },
         {
-            "description": "设置远程目标",
-            "text": "set remote exec-file ${workspaceFolder}/src/u-boot/u-boot"
-        },
-        {
             "description": "设置源码路径",
             "text": "directory ${workspaceFolder}/src/u-boot"
         },
@@ -90,10 +81,6 @@
         ],
         "sourceFileMap": {
             "/build": "${workspaceFolder}/src/u-boot",
-            "/build/source": "${workspaceFolder}/src/u-boot"
-        },
-        "logging": {
-        "engineLogging": true
         }
     },
     {

@@ -11,5 +11,5 @@ qemu-system-aarch64 \
     -m 1024 \
     -nographic \
     -bios $UBOOT_SRC_DIR/u-boot.bin \
-    -s 
-    #-S 
+    -s \
+    -S 

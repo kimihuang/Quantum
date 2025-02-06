@@ -5,6 +5,45 @@
     "version": "0.2.0",
     "configurations": [
     {
+        "name": "Debug RT-Thread",
+        "type": "cppdbg",
+        "request": "launch",
+        "miDebuggerServerAddress": "localhost:1234",
+        "program": "${workspaceFolder}/src/rt-thread/bsp/qemu-vexpress-a9/rtthread.elf",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb-multiarch",
+        "setupCommands": [
+            {
+                "text": "set architecture arm",
+                "ignoreFailures": true
+            },
+            {
+                "text": "handle SIGTRAP nostop noprint",
+                "ignoreFailures": true
+            },
+            {
+                "text": "set debug remote 1",
+                "ignoreFailures": true
+            },
+            {
+                "text": "directory ${workspaceFolder}/src/rt-thread",
+                "ignoreFailures": true
+            },
+            {
+                "text": "symbol-file ${workspaceFolder}/src/rt-thread/bsp/qemu-vexpress-a9/rtthread.elf",
+                "ignoreFailures": true
+            }
+        ],
+        "sourceFileMap": {
+            "/build": "${workspaceFolder}/src/rt-thread"
+        }
+    },
+    {
         "name": "Debug U-Boot",
         "type": "cppdbg",
         "request": "launch",
@@ -55,6 +94,69 @@
         },
         "logging": {
         "engineLogging": true
+        }
+    },
+    {
+        "name": "ARM64 Kernel Remote Debug (QEMU)",
+        "type": "cppdbg",
+        "request": "launch",
+        "miDebuggerServerAddress": "175.24.47.2:1234",
+        "program": "${workspaceFolder}/vmlinux",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": true,           // 改为true以支持无图形界面
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb-multiarch",//"/home/lixiang/workdir/tool/toolchains/SYS_PUBLIC_TOOLS/.toolchain/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu-linux-5.10/bin/aarch64-none-linux-gnu-gdb",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Set remote target",
+                "text": "set target-async on",  // 添加异步模式支持
+                "ignoreFailures": true
+            },
+            {
+                "description": "Set packet handling",
+                "text": "set remotetimeout 60", // 增加远程超时时间
+                "ignoreFailures": true
+            },
+            {
+                "description": "Load kernel symbols",
+                "text": "add-symbol-file ${workspaceFolder}/vmlinux"
+            },
+            {
+                "description": "Set architecture",
+                "text": "set architecture aarch64", // 明确设置架构
+                "ignoreFailures": true
+            },
+            {
+                "description": "Stop at start",
+                "text": "break start_kernel",  // 在内核启动函数设置断点
+                "ignoreFailures": false
+            }
+        ],
+        "sourceFileMap": {
+            // 添加源文件映射，如果远程和本地路径不同
+            "/home/lixiang/workdir/sourcecode/linux/linux": "${workspaceFolder}"
+        },
+        "targetArchitecture": "arm64",
+        "customLaunchSetupCommands": [
+            {
+                "text": "target remote 175.24.47.2:1234",
+                "description": "Connect to QEMU gdb server"
+            }
+        
+        ],
+        "logging": {
+            "trace": true,         // 启用调试日志
+            "engineLogging": true,
+            "programOutput": true,
+            "exceptions": true
         }
     },
     {

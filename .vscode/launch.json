@@ -24,20 +24,18 @@
             "ignoreFailures": true
         },
         {
-            "text": "handle SIGTRAP nostop noprint",
-            "ignoreFailures": true
-        },
-        {
-            "text": "set debug remote 0",
+            "text": "set debug remote 1",
             "ignoreFailures": true
         },
         {
             "description": "设置源码路径",
-            "text": "directory ${workspaceFolder}/src/tf-a"
+            "text": "directory ${workspaceFolder}/src/tf-a",
+            "ignoreFailures": true
         },
         {
             "description": "加载调试符号",
-            "text": "symbol-file ${workspaceFolder}/src/tf-a/build/qemu/debug/bl1/bl1.elf"
+            "text": "symbol-file ${workspaceFolder}/src/tf-a/build/qemu/debug/bl1/bl1.elf",
+            "ignoreFailures": false
         },
         {
             "description": "Stop at start",
@@ -46,7 +44,15 @@
         }
         ],
         "sourceFileMap": {
-            "/build": "${workspaceFolder}/src/tf-a",
+            //"/build": "${workspaceFolder}/src/tf-a",
+            "${workspaceFolder}/src/tf-a": "${workspaceFolder}/src/tf-a"
+        },
+        "logging": {
+            "trace": false,          // 按照调试需求，打开或关闭调试trace信息
+            "engineLogging": true,  // 这个开关打开后， 日志输出较多， 根据需求是否打开
+            "programOutput": true,
+            "traceResponse": false,
+            "exceptions": true
         }
     },
     {

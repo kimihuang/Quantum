@@ -13,6 +13,6 @@ qemu-system-aarch64 \
     -smp 2 \
     -m 1024 \
     -bios $TFA_DEBUG_DIR/bl1.bin \
-    -device loader,file=$TFA_DEBUG_DIR/fip.bin,addr=0x50000000 \
+    -device loader,file=$TFA_DEBUG_DIR/fip.bin,addr=0x44000000 \
     -nographic \
     -s -S

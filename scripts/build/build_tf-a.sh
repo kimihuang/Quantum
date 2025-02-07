@@ -16,11 +16,10 @@ make distclean
 make -C $TFA_SRC_DIR \
     PLAT=qemu \
     ARCH=aarch64 \
-    CFLAGS='-O1 -g' \
-    ARM_ROTPK_LOCATION=devel_rsa \
-    GENERATE_COT=1 \
-    MBEDTLS_DIR=$MBEDTLS_DIR \
+    CROSS_COMPILE=aarch64-linux-gnu- \
+    CFLAGS='-O0 -g' \
     BL33=$ROOT_OUT_DIR/uboot_out/u-boot.bin \
-    TRUSTED_BOARD_BOOT=1 \
+    TRUSTED_BOARD_BOOT=0 \
+    GENERATE_COT=0 \
     DEBUG=1 \
     all fip

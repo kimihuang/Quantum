@@ -1,24 +1,26 @@
 #!/bin/bash
 
-# 编译TF-A的脚本
+ROOT_DIR=$(pwd)
+ROOT_OUT_DIR="$ROOT_DIR/out"
+TFA_OUT_DIR="$ROOT_OUT_DIR/tf-a_out"
+TFA_SRC_DIR="$ROOT_DIR/src/tf-a"
+MBEDTLS_DIR="$ROOT_DIR/src/mbedtls"
 
-# 设置TF-A源代码路径
-TF_A_SRC_DIR="../src/tf-a"
+# 编译mbedtls
+cd $MBEDTLS_DIR
+make -j$(nproc)
 
-# 输出目录
-OUTPUT_DIR="../../out"
-
-# 创建输出目录（如果不存在）
-mkdir -p $OUTPUT_DIR
-
-# 进入TF-A源代码目录
-cd $TF_A_SRC_DIR
-
-# 执行编译命令
-make clean
-make
-
-# 将编译产物复制到输出目录
-cp build/* $OUTPUT_DIR/
-
-echo "TF-A编译完成，产物已输出到 $OUTPUT_DIR"
+cd $TFA_SRC_DIR
+make distclean
+# 编译TF-A
+make -C $TFA_SRC_DIR \
+    PLAT=qemu \
+    ARCH=aarch64 \
+    CFLAGS='-O1 -g' \
+    ARM_ROTPK_LOCATION=devel_rsa \
+    GENERATE_COT=1 \
+    MBEDTLS_DIR=$MBEDTLS_DIR \
+    BL33=$ROOT_OUT_DIR/uboot_out/u-boot.bin \
+    TRUSTED_BOARD_BOOT=1 \
+    DEBUG=1 \
+    all fip

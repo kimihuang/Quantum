@@ -5,6 +5,51 @@
     "version": "0.2.0",
     "configurations": [
     {
+        "name": "Debug TF-A",
+        "type": "cppdbg",
+        "request": "launch",
+        "miDebuggerServerAddress": "localhost:1234",
+        "program": "${workspaceFolder}/src/tf-a/build/qemu/debug/bl1/bl1.elf",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "gdb-multiarch",
+        "setupCommands": [
+        {
+            "description": "Set architecture",
+            "text": "set architecture aarch64", // 明确设置架构
+            "ignoreFailures": true
+        },
+        {
+            "text": "handle SIGTRAP nostop noprint",
+            "ignoreFailures": true
+        },
+        {
+            "text": "set debug remote 0",
+            "ignoreFailures": true
+        },
+        {
+            "description": "设置源码路径",
+            "text": "directory ${workspaceFolder}/src/tf-a"
+        },
+        {
+            "description": "加载调试符号",
+            "text": "symbol-file ${workspaceFolder}/src/tf-a/build/qemu/debug/bl1/bl1.elf"
+        },
+        {
+            "description": "Stop at start",
+            "text": "break bl1_setup",
+            "ignoreFailures": false
+        }
+        ],
+        "sourceFileMap": {
+            "/build": "${workspaceFolder}/src/tf-a",
+        }
+    },
+    {
         "name": "Debug Kernel",
         "type": "cppdbg",
         "request": "launch",

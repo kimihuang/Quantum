@@ -203,6 +203,11 @@
             {
                 "text": "symbol-file ${workspaceFolder}/src/rt-thread/bsp/qemu-vexpress-a9/rtthread.elf",
                 "ignoreFailures": true
+            },
+            {
+                "description": "Stop at _reset",
+                "text": "break _reset",  // 在复位向量处设置断点
+                "ignoreFailures": false
             }
         ],
         "sourceFileMap": {

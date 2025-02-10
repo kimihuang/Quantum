@@ -13,7 +13,7 @@ qemu-system-aarch64 \
     -m 1024 \
     -nographic \
     -kernel $KERNEL_SRC_DIR/arch/arm64/boot/Image \
-    -append "console=ttyAMA0 root=/dev/vda rw nokaslr" \
+    -append "console=ttyAMA0 root=/dev/vda rw nokaslr earlycon=pl011,0x9000000 debug loglevel=8" \
     -drive if=none,file=$ROOTFS_DIR/rootfs.img,format=raw,id=hd \
     -device virtio-blk-device,drive=hd \
     -s \

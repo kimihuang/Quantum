@@ -25,13 +25,13 @@ cd $KERNEL_SRC_DIR
 
 # 清理编译产物
 #make ARCH=arm64 mrproper
-make O=$KERNEL_OUT_DIR ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- mrproper
+make  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- mrproper
 
 # 配置内核以适配 QEMU
-make O=$KERNEL_OUT_DIR ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
+make  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
 
 # 执行编译命令
-make O=$KERNEL_OUT_DIR ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
+make  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
 
 
 echo "内核编译完成，产物已输出到 $KERNEL_OUT_DIR"

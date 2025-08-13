@@ -1,0 +1,22 @@
+digraph flowchart {
+    // 全局设置
+    
+    node [shape=box, style=filled, fillcolor="#f0f0f0", fontname="Arial", fontsize=12];
+    edge [fontname="Arial", fontsize=10];
+
+    // 定义节点
+    start [label="开始"];
+    step1 [label="步骤 1"];
+    step2 [label="步骤 2"];
+    decision [label="决策点\n(是/否)", shape=diamond];
+    step3 [label="步骤 3"];
+    end [label="结束"];
+
+    // 定义边
+    start -> step1;
+    step1 -> step2;
+    step2 -> decision;
+    decision -> step3 [label="是"];
+    decision -> end [label="否"];
+    step3 -> end;
+}

@@ -1,5 +1,9 @@
 # Quantum 项目说明
 
+提交代码
+git push github HEAD:master
+git push origin HEAD:main
+
 该项目旨在创建一个类似于 Android 的构建系统，支持编译多个组件，包括 TF-A、U-Boot、内核、Buildroot 和 RT-Thread。以下是项目的主要组成部分及其功能：
 
 ## 目录结构

@@ -1,0 +1,8 @@
+@startuml
+[Web Server] as WS
+[Database] as DB
+
+[Authentication Service] as Auth
+WS --> DB : 数据访问
+WS --> Auth : 认证请求
+@enduml

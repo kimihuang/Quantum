@@ -1,0 +1,40 @@
+@startuml
+
+|uboot 初始化|
+:定义_u_boot_list2_g_dnl_bind_\ncallbacks_usb_dnl_fastboot的变量， 放到\n"_u_boot_list2_g_dnl_bind_\ncallbacks_usb_dnl_fastboot" section;
+floating note right
+  _u_boot_list2_g_dnl_bind_callbacks_usb_dnl_fastboot
+  是一个全局变量，\n用于存储fastboot的回调函数。
+end note
+#LightCoral:DECLARE_GADGET_BIND_CALLBACK\n(usb_dnl_fastboot, fastboot_add);
+:fastboot_add;
+stop
+|do_fastboot_cmd|
+start
+:fastboot_init;
+
+|fastboot_init|
+:fastboot_buf_addr初始化;
+:fastboot_buf_size初始化;
+|do_fastboot_cmd|
+:do_fastboot_usb;
+|do_fastboot_usb|
+:udc_device_get_by_index \n (controller_index, &udc);
+:g_dnl_clear_detach();
+:g_dnl_register \n ("usb_dnl_fastboot");
+:g_dnl_board_usb_cable_connected();
+repeat
+  :schedule();
+  #LightCoral:dm_usb_gadget_handle_interrupts(udc);
+  |dwc3 dm_usb_gadget\n_handle_interrupts|
+  :dwc3_gadget_uboot_handle_interrupt;
+  :dwc3_interrupt(0, dwc);
+  floating note right: 获取中断状态 
+  if (如果是IRQ_WAKE_THREAD) then (yes)
+    :dwc3_thread_interrupt(0, dwc);
+  endif
+  |do_fastboot_usb|
+repeat while(1)
+
+
+@enduml

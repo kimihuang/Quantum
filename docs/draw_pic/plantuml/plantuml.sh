@@ -9,6 +9,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
+ROOT_DIR="$(pwd)"
+
 # 显示帮助信息
 show_help() {
     echo -e "${YELLOW}Usage:${NC}"
@@ -35,7 +37,6 @@ prepare_output_dir() {
 	local dir="$1"
     if [ ! -d "$dir" ]; then
 		mkdir -p "$dir"
-		exit 1
 	fi
 }
 
@@ -47,6 +48,7 @@ convert_file() {
     local file_name="${base_name%.puml}"
 	local output_file="${output_dir}"
 
+	echo -e "${GREEN}正在转换: ${input_file} -> ${output_file}"
 	java -jar ./plantuml.jar  "$input_file" -o ${output_file}
 
 }
@@ -55,8 +57,11 @@ convert_all() {
     local output_dir="$1"
 	local puml_files=(*.puml)
 
-	for file in "${puml_files[@]}"; do
-		 convert_file "$file" "$output_dir"
+	find "$ROOT_DIR" -type f -name "*.puml" | while read -r puml_file; do
+		relative_path="${puml_file#$ROOT_DIR/}"
+		output_subdir="$output_dir/$(dirname "$relative_path")"
+		mkdir -p "$output_subdir"
+		convert_file "$puml_file" "$output_subdir"
     done
 
 }
@@ -67,14 +72,16 @@ main() {
 		show_help
     fi
 
-	 prepare_output_dir $2
+	output_dir=$2
+	output_dir=$(realpath "$output_dir")
+	prepare_output_dir $output_dir
 
 	 case "$1" in
         "all")
-            convert_all "$2"
+            convert_all "$output_dir"
             ;;
         *)
-           convert_file "$1" "$2"
+           convert_file "$1" "$output_dir"
             ;;
 	esac
 }

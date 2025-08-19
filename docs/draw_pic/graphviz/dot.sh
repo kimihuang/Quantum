@@ -9,6 +9,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
+ROOT_DIR="$(pwd)"
+
 # 显示帮助信息
 show_help() {
     echo -e "${YELLOW}Usage:${NC}"
@@ -46,11 +48,11 @@ prepare_output_dir() {
 }
 
 convert_file() {
-    declare -g input_file="$1"
-    declare -g output_dir="$2"
-    declare -g base_name="${input_file##*/}"
-    declare -g file_name="${base_name%.dot}"
-    declare -g output_file="${output_dir}/${file_name}"
+    local input_file="$1"
+    local output_dir="$2"
+    local base_name="${input_file##*/}"
+    local file_name="${base_name%.dot}"
+    local output_file="${output_dir}/${file_name}.png"
 
     if [ ! -f "$input_file" ]; then
         echo -e "${RED}错误: 文件 ${input_file} 不存在${NC}"
@@ -64,7 +66,7 @@ convert_file() {
 
     echo -e "${GREEN}正在转换: ${input_file} -> ${output_file}.png${NC}"
 
-    dot -Tpng "$input_file" -o ${output_file}.png
+    dot -Tpng "$input_file" -o ${output_file}
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}成功: ${output_file}.png 已生成${NC}"
@@ -82,8 +84,11 @@ convert_all() {
         return 1
     fi
 
-    for file in "${dot_files[@]}"; do
-        convert_file "$file" "$output_dir"
+	find "$ROOT_DIR" -type f -name "*.dot" | while read -r dot_file; do
+		relative_path="${dot_file#$ROOT_DIR/}"
+		output_subdir="$output_dir/$(dirname "$relative_path")"
+		mkdir -p "$output_subdir"
+        convert_file "$dot_file" "$output_subdir"
     done
 }
 
@@ -93,15 +98,19 @@ main() {
         show_help
     fi
 
+    output_dir=$2
+    output_dir=$(realpath "$output_dir")
+    prepare_output_dir $output_dir
+
     #check_dependencies
-    prepare_output_dir $2
+    prepare_output_dir $output_dir
 
     case "$1" in
         "all")
-            convert_all "$2"
+            convert_all "$output_dir"
             ;;
         *)
-            convert_file "$1" "$2"
+            convert_file "$1" "$output_dir"
             ;;
     esac
 

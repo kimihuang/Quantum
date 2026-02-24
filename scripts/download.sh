@@ -2,7 +2,7 @@
 
 # 检查参数
 if [ "$#" -eq 0 ]; then
-    echo "Usage: $0 [all|kernel|tfa|uboot|buildroot|rt-thread]"
+    echo "Usage: $0 [all|kernel|tfa|uboot|buildroot|rt-thread|mbedtls]"
     exit 1
 fi
 
@@ -16,6 +16,7 @@ case "$1" in
             "https://github.com/RT-Thread/rt-thread.git"
             "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
             "https://github.com/ARM-software/arm-trusted-firmware.git"
+            "https://github.com/Mbed-TLS/mbedtls.git"
         )
         ;;
     kernel)
@@ -38,9 +39,13 @@ case "$1" in
         echo "Downloading rt-thread repositories..."
         REPO_URLS=("https://github.com/RT-Thread/rt-thread.git")
         ;;
+    mbedtls)
+        echo "Downloading mbedtls repositories..."
+        REPO_URLS=("https://github.com/Mbed-TLS/mbedtls.git")
+        ;;
     *)
         echo "Invalid option: $1"
-        echo "Usage: $0 [all|uboot|buildroot|rt-thread]"
+        echo "Usage: $0 [all|kernel|tfa|uboot|buildroot|rt-thread|mbedtls]"
         exit 1
         ;;
 esac

@@ -1,37 +1,35 @@
 #!/bin/bash
 
-# 设置 Kernel 构建相关路径
-ROOT_DIR=$(pwd)
-ROOT_OUT_DIR="$ROOT_DIR/out"
-KERNEL_OUT_DIR="$ROOT_OUT_DIR/kernel_out"
-KERNEL_SRC_DIR="$ROOT_DIR/src/kernel"
+# 使用 envsetup.sh 中定义的环境变量
 
-
-# 判断 kernel out 目录是否存在，不存在则创建
-if [ ! -d "$KERNEL_OUT_DIR" ]; then
-    echo "kernel out directory not found, creating $KERNEL_OUT_DIR"
-    mkdir -p "$KERNEL_OUT_DIR"
+# 检查内核源码目录是否存在
+if [ ! -d "$LINUX_DIR" ]; then
+    echo "错误: Linux 内核源码目录不存在: $LINUX_DIR"
+    echo "请下载 Linux 内核源码: ./scripts/download.sh kernel"
+    exit 1
 fi
 
-# 判断 kernel 源码目录是否存在，不存在则输出调试信息后退出
-if [ ! -d "$KERNEL_SRC_DIR" ] && [ ! -L "$KERNEL_SRC_DIR" ]; then
-    # 创建软链接到 linux 源码目录
-    echo "kernel source directory is not a symlink, creating soft link to $KERNEL_SRC_DIR"
-    ln -s /home/lighthouse/sourcecode/linux-master $KERNEL_SRC_DIR
-fi
+# 创建输出目录
+mkdir -p "$KERNEL_OUT_DIR"
+
+echo "开始编译 Linux 内核..."
 
 # 进入内核源码目录
-cd $KERNEL_SRC_DIR
+cd "$LINUX_DIR"
 
 # 清理编译产物
-#make ARCH=arm64 mrproper
-make  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- mrproper
+make ARCH=arm64 CROSS_COMPILE="$CROSS_COMPILE" mrproper
 
 # 配置内核以适配 QEMU
-make  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
+make ARCH=arm64 CROSS_COMPILE="$CROSS_COMPILE" defconfig
 
 # 执行编译命令
-make  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
+make ARCH=arm64 CROSS_COMPILE="$CROSS_COMPILE" -j$(nproc)
 
-
-echo "内核编译完成，产物已输出到 $KERNEL_OUT_DIR"
+if [ $? -eq 0 ]; then
+    echo "Linux 内核编译成功！"
+    echo "编译产物已输出到: $KERNEL_OUT_DIR"
+else
+    echo "Linux 内核编译失败！"
+    exit 1
+fi

@@ -5,8 +5,29 @@ export PROJECT_ROOT=$(pwd)
 export BUILD_DIR="$PROJECT_ROOT/build"
 export OUT_DIR="$PROJECT_ROOT/out"
 export SRC_DIR="$PROJECT_ROOT/src"
-# 添加BUILDROOT_DIR环境变量
+
+# 源码目录
 export BUILDROOT_DIR="$SRC_DIR/buildroot/buildroot-2025.02-rc1"
+export LINUX_DIR="$SRC_DIR/linux-6.1"
+export TFA_DIR="$SRC_DIR/tf-a"
+export UBOOT_DIR="$SRC_DIR/u-boot"
+export RTTHREAD_DIR="$SRC_DIR/rt-thread"
+export MBEDTLS_DIR="$SRC_DIR/mbedtls"
+
+# 输出目录
+export TFA_OUT_DIR="$OUT_DIR/tf-a_out"
+export UBOOT_OUT_DIR="$OUT_DIR/uboot_out"
+export KERNEL_OUT_DIR="$OUT_DIR/kernel_out"
+export RTT_OUT_DIR="$OUT_DIR/rtt_out"
+
+# 根文件系统目录
+export ROOTFS_DIR="$PROJECT_ROOT/tools/rootfs_busybox"
+
+# QEMU 运行脚本目录
+export QEMU_SCRIPTS_DIR="$PROJECT_ROOT/scripts/qemu"
+
+# 编译工具链前缀
+export CROSS_COMPILE="aarch64-linux-gnu-"
 
 # 添加必要的路径，避免重复添加
 if [[ ":$PATH:" != *":$BUILD_DIR:"* ]]; then
@@ -56,6 +77,7 @@ function help() {
     2. 下载源码: ./scripts/download.sh [all|tfa|uboot|kernel|buildroot|rt-thread]
     3. 选择目标板卡: lunch
     4. 编译目标组件
+    5. (可选) 运行 QEMU 调试
 
 板卡配置:
     lunch 命令会列出可用的板卡配置:
@@ -71,6 +93,7 @@ function help() {
     ./scripts/download.sh kernel    - 下载 Linux 内核源码
     ./scripts/download.sh buildroot - 下载 Buildroot 源码
     ./scripts/download.sh rt-thread - 下载 RT-Thread 源码
+    ./scripts/download.sh mbedtls   - 下载 MbedTLS 源码 (TF-A 依赖)
     源码将下载到 src/ 目录下
 
 Makefile 构建目标:
@@ -86,6 +109,12 @@ Makefile 构建目标:
     ./scripts/build/build_kernel.sh   - 编译 Linux 内核
     ./scripts/build/build_rtthread.sh - 编译 RT-Thread 实时操作系统
     注意: 构建前请确保对应的源码已下载到 src/ 目录
+
+QEMU 运行脚本:
+    ./scripts/qemu/qemu_kernel.sh     - 在 QEMU 中运行 Linux 内核
+    ./scripts/qemu/qemu_uboot.sh       - 在 QEMU 中运行 U-Boot
+    ./scripts/qemu/qemu_tfa.sh         - 在 QEMU 中运行 TF-A
+    注意: 运行前请先编译对应的组件，使用 -s -S 参数支持 GDB 调试
 
 输出目录:
     编译产物将存放在 out/ 目录下

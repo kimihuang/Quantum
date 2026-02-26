@@ -1,0 +1,10 @@
+# U-Boot defconfig for board_qemu_b
+# Target: QEMU ARM64 virt platform
+# Based on qemu_arm64_defconfig with customizations
+
+CONFIG_ARM64=y
+CONFIG_TARGET_QEMU=y
+CONFIG_TARGET_QEMU_ARM64=y
+CONFIG_SYS_TEXT_BASE=0x40000000
+CONFIG_IDENT_STRING=" QEMU ARM64 board_qemu_b"
+CONFIG_SPL=y

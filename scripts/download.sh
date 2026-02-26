@@ -1,8 +1,9 @@
 #!/bin/bash
 
+
 # 检查参数
 if [ "$#" -eq 0 ]; then
-    echo "Usage: $0 [all|kernel|tfa|uboot|buildroot|rt-thread|mbedtls]"
+    echo "Usage: $0 [all|kernel|tfa|uboot|buildroot|rt-thread|mbedtls|busybox]"
     exit 1
 fi
 
@@ -17,6 +18,7 @@ case "$1" in
             "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
             "https://github.com/ARM-software/arm-trusted-firmware.git"
             "https://github.com/Mbed-TLS/mbedtls.git"
+            "https://busybox.net/downloads/busybox-${BUSYBOX_VERSION}.tar.bz2"
         )
         ;;
     kernel)
@@ -43,9 +45,13 @@ case "$1" in
         echo "Downloading mbedtls repositories..."
         REPO_URLS=("https://github.com/Mbed-TLS/mbedtls.git")
         ;;
+    busybox)
+        echo "Downloading busybox repositories..."
+        REPO_URLS=("https://busybox.net/downloads/busybox-${BUSYBOX_VERSION}.tar.bz2")
+        ;;
     *)
         echo "Invalid option: $1"
-        echo "Usage: $0 [all|kernel|tfa|uboot|buildroot|rt-thread|mbedtls]"
+        echo "Usage: $0 [all|kernel|tfa|uboot|buildroot|rt-thread|mbedtls|busybox]"
         exit 1
         ;;
 esac

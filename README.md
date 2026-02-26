@@ -12,7 +12,18 @@ git push origin HEAD:main
 ## 目录结构
 
 - **build/envsetup.sh**：设置构建环境，配置必要的环境变量和路径，提供 lunch 和 help 命令
-- **board/**：板卡配置目录，包含不同板卡的配置文件（board_a.conf、board_b.conf、board_default.conf）
+- **board/**：板卡配置目录
+  - `board_qemu_a/`：QEMU板卡A配置
+    - `board_qemu_a.conf`：QEMU板卡A主配置文件
+    - `config/kernel_defconfig`：QEMU板卡A的Linux内核配置
+    - `config/uboot_defconfig`：QEMU板卡A的U-Boot配置
+    - `config/buildroot_defconfig`：QEMU板卡A的Buildroot配置
+  - `board_qemu_b/`：QEMU板卡B配置
+    - `board_qemu_b.conf`：QEMU板卡B主配置文件
+    - `config/kernel_defconfig`：QEMU板卡B的Linux内核配置
+    - `config/uboot_defconfig`：QEMU板卡B的U-Boot配置
+    - `config/buildroot_defconfig`：QEMU板卡B的Buildroot配置
+  - `board_default/`：默认板卡配置
 - **Makefile**：主构建文件，定义 buildroot 的构建规则
 - **scripts/**：脚本目录
   - `download.sh`：下载所需的源码仓库
@@ -36,6 +47,7 @@ git push origin HEAD:main
 - **out/**：存放最终编译输出的产物
 - **tools/**：辅助工具
   - `rootfs_busybox/`：Busybox 根文件系统构建脚本
+  - `arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/`：ARM交叉编译工具链
 
 ## 使用说明
 
@@ -100,11 +112,40 @@ lunch
 ```
 
 该命令会列出可用的板卡配置：
-- board_a
-- board_b
-- board_default
+- board_qemu_a：QEMU板卡A配置 (4核, 1GB内存, cortex-a57)
+- board_qemu_b：QEMU板卡B配置 (2核, 2GB内存, cortex-a57, preempt)
+- board_default：默认板卡配置 (4核, 1GB内存, cortex-a57)
 
-板卡配置文件位于 `board/` 目录，定义了板卡的 KERNEL_CONFIG、UBOOT_CONFIG、BUILDROOT_CONFIG 等参数。
+板卡配置文件位于 `board/` 目录，采用以下结构：
+```
+board/
+├── board_qemu_a/
+│   ├── board_qemu_a.conf        # 板卡主配置文件
+│   └── config/
+│       ├── kernel_defconfig      # Linux 内核配置
+│       ├── uboot_defconfig      # U-Boot 配置
+│       └── buildroot_defconfig  # Buildroot 配置
+├── board_qemu_b/
+│   ├── board_qemu_b.conf        # 板卡主配置文件
+│   └── config/
+│       ├── kernel_defconfig
+│       ├── uboot_defconfig
+│       └── buildroot_defconfig
+└── board_default/
+    ├── board_default.conf        # 板卡主配置文件
+    └── config/
+        ├── kernel_defconfig
+        ├── uboot_defconfig
+        └── buildroot_defconfig
+```
+
+板卡配置定义了：
+- 各组件的 defconfig 文件路径
+- 板卡特定参数（QEMU_MACHINE、QEMU_CPU、QEMU_SMP、QEMU_MEM 等）
+- 内核启动参数（KERNEL_CMDLINE）
+- 输出目录（BOARD_OUT_DIR）
+
+选择板卡后，所有构建脚本和 QEMU 运行脚本会自动使用该板卡的配置。
 
 #### 2.4 编译组件
 
@@ -194,12 +235,24 @@ make menuconfig # 配置 Buildroot
 - `OUT_DIR`：通用输出目录 (`out/`)
 
 **其他：**
-- `CROSS_COMPILE`：交叉编译工具链前缀 (`aarch64-linux-gnu-`)
+- `CROSS_COMPILE`：交叉编译工具链前缀
+- `ARM_TOOLCHAIN_DIR`：ARM 工具链目录 (`tools/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu`)
 - `ROOTFS_DIR`：根文件系统目录 (`tools/rootfs_busybox`)
 
 ### 4. 交叉编译工具链
 
-项目使用 `aarch64-linux-gnu-` 交叉编译工具链。如果未安装，可以安装：
+项目使用 ARM GNU 工具链进行交叉编译，优先使用项目自带的工具链：
+
+**项目自带工具链：**
+- 位置：`tools/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu`
+- 版本：ARM GNU Toolchain 13.3.Rel1
+- 工具链前缀：`aarch64-none-linux-gnu-`
+
+执行 `source build/envsetup.sh` 后，工具链会自动添加到 PATH 中。如果工具链目录不存在，会自动回退到系统默认的 `aarch64-linux-gnu-` 工具链。
+
+**安装系统默认工具链（可选）：**
+
+如果项目工具链不可用，可以安装系统工具链作为备选：
 
 ```bash
 # Ubuntu/Debian
@@ -207,6 +260,18 @@ sudo apt-get install gcc-aarch64-linux-gnu
 
 # 或使用 aptitude
 sudo aptitude install gcc-aarch64-linux-gnu
+```
+
+**验证工具链：**
+
+```bash
+# 验证工具链是否可用
+${CROSS_COMPILE}gcc --version
+
+# 应该显示类似输出：
+# aarch64-none-linux-gnu-gcc (Arm GNU Toolchain 13.3.Rel1) 13.3.1
+# 或
+# aarch64-linux-gnu-gcc (Ubuntu 11.x.x-0ubuntu1) 11.x.x
 ```
 
 ### 5. 注意事项

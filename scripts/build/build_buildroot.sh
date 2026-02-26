@@ -24,42 +24,36 @@ if [ ! -f "$BUILDROOT_DEFCONFIG" ]; then
     exit 1
 fi
 
-# 创建输出目录
-mkdir -p "$OUT_DIR"
+# 创建板卡输出目录
+mkdir -p "$BOARD_OUT_DIR"
 
 echo "开始编译 Buildroot..."
 echo "板卡: $BOARD_NAME"
 echo "Buildroot 配置: $BUILDROOT_DEFCONFIG"
+echo "输出目录: $BOARD_OUT_DIR"
 echo ""
 
 # 进入 Buildroot 源码目录
 cd "$BUILDROOT_DIR"
 
-# 设置 Buildroot 的输出目录
-export BR2_OUTPUT="$PROJECT_ROOT/build"
-
 # 使用板卡配置文件
 if [ -f "$BUILDROOT_DEFCONFIG" ]; then
-    # 使用板卡特定的 defconfig
+    # 使用板卡特定的 defconfig，并使用 O= 参数指定输出目录
     cp "$BUILDROOT_DEFCONFIG" "$BUILDROOT_DIR/configs/board_defconfig"
-    make board_defconfig
+    make O="$BOARD_OUT_DIR" board_defconfig
 else
     # 回退到默认配置
-    make defconfig
+    make O="$BOARD_OUT_DIR" defconfig
 fi
 
 # 执行 Buildroot 的编译
-make
+make O="$BOARD_OUT_DIR"
 
 # 检查编译结果
 if [ $? -eq 0 ]; then
     echo "Buildroot 编译成功！"
 
-    # 将编译产物移动到输出目录
-    mkdir -p "$OUT_DIR"
-    mv output/images/* "$OUT_DIR/" 2>/dev/null || true
-
-    echo "编译产物已输出到: $OUT_DIR"
+    echo "编译产物已输出到: $BOARD_OUT_DIR"
 else
     echo "Buildroot 编译失败！"
     exit 1

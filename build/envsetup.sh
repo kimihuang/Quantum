@@ -35,12 +35,13 @@ export MBEDTLS_DIR="$SRC_DIR/mbedtls"
 export BUSYBOX_VERSION="1.36.1"
 export BUSYBOX_DIR="$SRC_DIR/busybox-$BUSYBOX_VERSION"
 
-# 输出目录
-export TFA_OUT_DIR="$OUT_DIR/tf-a_out"
-export UBOOT_OUT_DIR="$OUT_DIR/uboot_out"
-export KERNEL_OUT_DIR="$OUT_DIR/kernel_out"
-export RTT_OUT_DIR="$OUT_DIR/rtt_out"
-export ROOTFS_OUT_DIR="$OUT_DIR/rootfs_out"
+# 输出目录（这些将在 lunch 中动态设置）
+TFA_OUT_DIR=
+UBOOT_OUT_DIR=
+KERNEL_OUT_DIR=
+RTT_OUT_DIR=
+ROOTFS_OUT_DIR=
+BOARD_OUT_DIR=
 
 # QEMU 运行脚本目录
 export QEMU_SCRIPTS_DIR="$PROJECT_ROOT/scripts/qemu"
@@ -86,7 +87,18 @@ function lunch() {
         export QEMU_SMP
         export QEMU_MEM
         export KERNEL_CMDLINE
+
+        # 根据 BOARD_OUT_DIR 设置所有组件输出目录
+        if [ -z "$BOARD_OUT_DIR" ]; then
+            BOARD_OUT_DIR="$OUT_DIR/$board"
+        fi
         export BOARD_OUT_DIR
+        export TFA_OUT_DIR="$BOARD_OUT_DIR/tf-a_out"
+        export UBOOT_OUT_DIR="$BOARD_OUT_DIR/uboot_out"
+        export KERNEL_OUT_DIR="$BOARD_OUT_DIR/kernel_out"
+        export RTT_OUT_DIR="$BOARD_OUT_DIR/rtt_out"
+        export ROOTFS_OUT_DIR="$BOARD_OUT_DIR/rootfs_out"
+
         echo "已加载板卡配置: $board_conf"
         echo "板卡名称: $BOARD_NAME"
         echo "配置文件:"
@@ -94,6 +106,7 @@ function lunch() {
         echo "  - U-Boot: $UBOOT_DEFCONFIG"
         echo "  - Buildroot: $BUILDROOT_DEFCONFIG"
         echo "板卡参数: QEMU=$QEMU_MACHINE, CPU=$QEMU_CPU, SMP=$QEMU_SMP, MEM=$QEMU_MEM MB"
+        echo "输出目录: $BOARD_OUT_DIR"
     else
         echo "未找到板卡配置: $board_conf，使用默认配置。"
     fi

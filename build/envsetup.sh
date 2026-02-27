@@ -6,6 +6,19 @@ export BUILD_DIR="$PROJECT_ROOT/build"
 export OUT_DIR="$PROJECT_ROOT/out"
 export SRC_DIR="$PROJECT_ROOT/src"
 
+# 检测 shell 类型并设置兼容性
+if [ -n "$ZSH_VERSION" ]; then
+    # zsh 环境
+    autoload -Uz bashcompinit 2>/dev/null || true
+    # zsh 不支持 export -f，函数自动在当前 shell 可用
+    export ENVSETUP_SHELL="zsh"
+elif [ -n "$BASH_VERSION" ]; then
+    # bash 环境
+    export ENVSETUP_SHELL="bash"
+else
+    export ENVSETUP_SHELL="unknown"
+fi
+
 # ARM 交叉编译工具链目录
 export ARM_TOOLCHAIN_DIR="$PROJECT_ROOT/tools/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu"
 
@@ -51,48 +64,115 @@ if [[ ":$PATH:" != *":$BUILD_DIR:"* ]]; then
     export PATH="$PATH:$BUILD_DIR"
 fi
 
+# 列出可用板卡
+function list_boards() {
+    local i=1
+    for f in $PROJECT_ROOT/board/*.conf; do
+        if [ -f "$f" ]; then
+            name=$(basename "$f" .conf)
+            echo "  $i. $name"
+            i=$((i+1))
+        fi
+    done
+}
+
+if [ "$ENVSETUP_SHELL" = "bash" ]; then
+    export -f list_boards
+fi
+
 # 定义构建目标和板卡选择
 function lunch() {
-    # 板卡选择（数字选择）
-    echo "可用板卡："
-    board_list=()
-    i=1
-    for f in $PROJECT_ROOT/board/*.conf; do
-        name=$(basename "$f" .conf)
-        echo "$i. $name"
-        board_list+=("$name")
-        i=$((i+1))
-    done
-    read -p "请输入板卡编号（回车默认最后一个）: " board_idx
-    if [ -z "$board_idx" ]; then
-        board_idx=${#board_list[@]}
+    local board_idx
+    local board
+
+    # 检测是否为交互式 shell
+    if [[ ! -t 0 ]]; then
+        echo "错误: lunch 需要在交互式终端中运行"
+        echo "用法: source build/envsetup.sh 后执行 lunch"
+        return 1
     fi
-    if [[ "$board_idx" =~ ^[0-9]+$ ]] && (( board_idx >= 1 && board_idx <= ${#board_list[@]} )); then
-        board="${board_list[board_idx-1]}"
+
+    # 支持命令行参数: lunch <board_name> 或 lunch <board_idx>
+    if [ $# -ge 1 ]; then
+        local input="$1"
+        # 检查是否为数字（板卡编号）
+        if [[ "$input" =~ ^[0-9]+$ ]]; then
+            board_list=()
+            while IFS= read -r -d '' f; do
+                name=$(basename "$f" .conf)
+                board_list+=("$name")
+            done < <(find "$PROJECT_ROOT/board" -maxdepth 1 -name "*.conf" -print0 | sort -z)
+
+            if (( input >= 1 && input <= ${#board_list[@]} )); then
+                board="${board_list[input-1]}"
+            else
+                echo "错误: 板卡编号超出范围 (1-${#board_list[@]})"
+                return 1
+            fi
+        else
+            # 按板卡名称查找
+            if [ -f "$PROJECT_ROOT/board/${input}.conf" ]; then
+                board="$input"
+            elif [ -f "$PROJECT_ROOT/board/${input}" ]; then
+                board=$(basename "$input" .conf)
+            else
+                echo "错误: 未找到板卡配置 '$input'"
+                echo "可用板卡:"
+                list_boards
+                return 1
+            fi
+        fi
     else
-        board="board_default"
+        # 板卡选择（数字选择）
+        echo "可用板卡："
+        board_list=()
+        i=1
+        for f in $PROJECT_ROOT/board/*.conf; do
+            name=$(basename "$f" .conf)
+            echo "$i. $name"
+            board_list+=("$name")
+            i=$((i+1))
+        done
+
+        # 兼容 bash 和 zsh 的 read 提示符语法
+        if [ "$ENVSETUP_SHELL" = "zsh" ]; then
+            # zsh 语法: read "?prompt"
+            read "board_idx?请输入板卡编号（回车默认最后一个）: "
+        else
+            # bash 语法: read -p "prompt"
+            read -p "请输入板卡编号（回车默认最后一个）: " board_idx
+        fi
+
+        if [ -z "$board_idx" ]; then
+            board_idx=${#board_list[@]}
+        fi
+
+        # 兼容 bash 和 zsh 的数组索引差异
+        # bash: 数组从 0 开始，board_list[0] 是第一个元素
+        # zsh: 数组从 1 开始，board_list[1] 是第一个元素
+        if [[ "$board_idx" =~ ^[0-9]+$ ]] && (( board_idx >= 1 && board_idx <= ${#board_list[@]} )); then
+            if [ "$ENVSETUP_SHELL" = "zsh" ]; then
+                # zsh 中直接使用索引
+                board="${board_list[board_idx]}"
+            else
+                # bash 中索引需要减 1
+                board="${board_list[board_idx-1]}"
+            fi
+        else
+            board="board_default"
+        fi
     fi
+
     board_conf="$PROJECT_ROOT/board/${board}.conf"
     if [ -f "$board_conf" ]; then
         # shellcheck disable=SC1090
         source "$board_conf"
-        export BOARD_NAME
-        export KERNEL_DEFCONFIG
-        export UBOOT_DEFCONFIG
-        export KERNEL_ARCH
-        export UBOOT_ARCH
-        export QEMU_MACHINE
-        export QEMU_CPU
-        export QEMU_SMP
-        export QEMU_MEM
-        export KERNEL_CMDLINE
-        export BR2_EXTERNAL_DIR
+        # 板卡配置文件中已通过 export 导出所有变量，无需重复导出
 
         # 根据 BOARD_OUT_DIR 设置所有组件输出目录
         if [ -z "$BOARD_OUT_DIR" ]; then
             BOARD_OUT_DIR="$OUT_DIR/$board"
         fi
-        export BOARD_OUT_DIR
         export TFA_OUT_DIR="$BOARD_OUT_DIR/tf-a_out"
         export UBOOT_OUT_DIR="$BOARD_OUT_DIR/uboot_out"
         export KERNEL_OUT_DIR="$BOARD_OUT_DIR/kernel_out"
@@ -190,5 +270,9 @@ EOF
 }
 
 # 使函数可用
-export -f lunch
-export -f help
+if [ "$ENVSETUP_SHELL" = "bash" ]; then
+    # bash 需要显式导出函数
+    export -f lunch
+    export -f help
+fi
+# zsh 中 source 后函数自动可用，无需 export -f

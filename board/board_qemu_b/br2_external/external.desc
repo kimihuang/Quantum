@@ -1,2 +1,2 @@
-config BR2_EXTERNAL_BR2_DIR
-	string
+name: BR2_BOARD
+desc: br2_board configs

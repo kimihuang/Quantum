@@ -1,5 +1,5 @@
 # 顶层Makefile，用于编译 Buildroot
-# 注意：此 Makefile 需要先执行 source build/envsetup.sh 和 lunch 选择板卡
+# 注意：此 Makefile 需要先执行 source build/envsetup.sh && lunch 选择板卡
 
 
 
@@ -14,48 +14,67 @@
 
 # 日志目录（基于板卡输出目录）
 BOARD_LOG_DIR ?= $(BOARD_OUT_DIR)/log
+TIMESTAMP ?= $(shell date +%Y%m%d_%H%M%S)
+LOG_FILE := $(BOARD_LOG_DIR)/buildroot_log_$(TIMESTAMP).log
 
-.PHONY: all buildroot clean distclean menuconfig
+# 如果没有指定目标，默认编译 Buildroot
+.DEFAULT_GOAL := all
 
-all: buildroot
+.PHONY: all help menuconfig
 
-buildroot:
+all:
 	@if [ -z "$(BOARD_NAME)" ]; then \
 		echo "错误: 未选择板卡配置，请先执行: source build/envsetup.sh && lunch"; \
 		exit 1; \
 	fi
-
-	@mkdir -p "$(BOARD_OUT_DIR)" "$(BOARD_LOG_DIR)" "$(BR2_EXTERNAL_DIR)"
+	@mkdir -p "$(BOARD_OUT_DIR)" "$(BOARD_LOG_DIR)"
 	@echo "开始编译 Buildroot..."
 	@echo "板卡: $(BOARD_NAME)"
-	@echo "Buildroot 配置: $(BUILDROOT_DEFCONFIG)"
 	@echo "输出目录: $(BOARD_OUT_DIR)"
 	@echo "外部扩展目录: $(BR2_EXTERNAL_DIR)"
 	@echo "日志目录: $(BOARD_LOG_DIR)"
 	@echo ""
-	$(MAKE) -C "$(BUILDROOT_DIR)" O="$(BOARD_OUT_DIR)" BR2_EXTERNAL="$(BR2_EXTERNAL_DIR)" "$(BUILDROOT_DEFCONFIG)" 2>&1 | tee "$(BOARD_LOG_DIR)/log_$$(date +%Y%m%d_%H%M%S).log"
-	$(MAKE) -C "$(BUILDROOT_DIR)" O="$(BOARD_OUT_DIR)" BR2_EXTERNAL="$(BR2_EXTERNAL_DIR)" 2>&1 | tee "$(BOARD_LOG_DIR)/log_$$(date +%Y%m%d_%H%M%S).log"
+	@echo "注意: Buildroot 配置已在 lunch 时完成"
+	$(MAKE) -C "$(BUILDROOT_DIR)" O="$(BOARD_OUT_DIR)" BR2_EXTERNAL="$(BR2_EXTERNAL_DIR)" 2>&1 | tee "$(LOG_FILE)"
 
+# menuconfig 不使用 tee，避免 TUI 界面显示异常
 menuconfig:
-	@echo "打开 Buildroot 配置菜单..."
-	@if [ -n "$(BOARD_OUT_DIR)" ]; then \
-		$(MAKE) -C "$(BUILDROOT_DIR)" O="$(BOARD_OUT_DIR)" BR2_EXTERNAL="$(BR2_EXTERNAL_DIR)" menuconfig; \
-	else \
-		$(MAKE) -C "$(BUILDROOT_DIR)" menuconfig; \
+	@if [ -z "$(BOARD_NAME)" ]; then \
+		echo "错误: 未选择板卡配置，请先执行: source build/envsetup.sh && lunch"; \
+		exit 1; \
 	fi
+	@mkdir -p "$(BOARD_OUT_DIR)" "$(BOARD_LOG_DIR)"
+	@$(MAKE) -C "$(BUILDROOT_DIR)" O="$(BOARD_OUT_DIR)" BR2_EXTERNAL="$(BR2_EXTERNAL_DIR)" menuconfig
 
-clean:
-	@if [ -n "$(BOARD_OUT_DIR)" ]; then \
-		echo "清理 Buildroot 编译产物: $(BOARD_OUT_DIR)"; \
-		rm -rf "$(BOARD_OUT_DIR)"/*; \
-	else \
-		$(MAKE) -C "$(BUILDROOT_DIR)" clean; \
+# 接受任意参数并传递给 Buildroot
+# 对于 *-menuconfig 目标，不使用 tee，避免 TUI 界面显示异常
+%-menuconfig:
+	@if [ -z "$(BOARD_NAME)" ]; then \
+		echo "错误: 未选择板卡配置，请先执行: source build/envsetup.sh && lunch"; \
+		exit 1; \
 	fi
+	@mkdir -p "$(BOARD_OUT_DIR)" "$(BOARD_LOG_DIR)"
+	@$(MAKE) -C "$(BUILDROOT_DIR)" O="$(BOARD_OUT_DIR)" BR2_EXTERNAL="$(BR2_EXTERNAL_DIR)" $@
 
-distclean:
-	@if [ -n "$(BOARD_OUT_DIR)" ]; then \
-		echo "完全清理 Buildroot: $(BOARD_OUT_DIR)"; \
-		rm -rf "$(BOARD_OUT_DIR)"; \
-	else \
-		$(MAKE) -C "$(BUILDROOT_DIR)" distclean; \
+# 接受其他任意参数并传递给 Buildroot
+%:
+	@if [ -z "$(BOARD_NAME)" ]; then \
+		echo "错误: 未选择板卡配置，请先执行: source build/envsetup.sh && lunch"; \
+		exit 1; \
 	fi
+	@mkdir -p "$(BOARD_OUT_DIR)" "$(BOARD_LOG_DIR)"
+	@echo "执行 Buildroot 目标: $@"
+	$(MAKE) -C "$(BUILDROOT_DIR)" O="$(BOARD_OUT_DIR)" BR2_EXTERNAL="$(BR2_EXTERNAL_DIR)" $@ 2>&1 | tee "$(LOG_FILE)"
+
+help:
+	@echo "可用目标:"
+	@echo "  make 或 make all       - 编译 Buildroot (默认)"
+	@echo ""
+	@echo "  或者直接使用任何 Buildroot 支持的目标，例如:"
+	@echo "  make menuconfig          - 打开 Buildroot 配置菜单"
+	@echo "  make clean               - 清理编译产物"
+	@echo "  make distclean           - 完全清理"
+	@echo "  make linux-menuconfig    - 打开 Linux 内核配置菜单"
+	@echo "  make linux-rebuild       - 重新编译 Linux 内核"
+	@echo "  make busybox-menuconfig  - 打开 Busybox 配置菜单"
+	@echo "  make uboot-rebuild       - 重新编译 U-Boot"

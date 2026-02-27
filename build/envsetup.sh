@@ -107,6 +107,20 @@ function lunch() {
         echo "  - Buildroot: $BUILDROOT_DEFCONFIG"
         echo "板卡参数: QEMU=$QEMU_MACHINE, CPU=$QEMU_CPU, SMP=$QEMU_SMP, MEM=$QEMU_MEM MB"
         echo "输出目录: $BOARD_OUT_DIR"
+
+        # 执行 Buildroot defconfig 配置
+        if [ -d "$BUILDROOT_DIR" ] && [ -d "$BR2_EXTERNAL_DIR" ]; then
+            echo ""
+            echo "正在配置 Buildroot..."
+            mkdir -p "$BOARD_OUT_DIR"
+            make -C "$BUILDROOT_DIR" O="$BOARD_OUT_DIR" BR2_EXTERNAL="$BR2_EXTERNAL_DIR" "$BUILDROOT_DEFCONFIG"
+            echo "Buildroot 配置完成: $BOARD_OUT_DIR/.config"
+        else
+            echo ""
+            echo "警告: Buildroot 源码或 BR2_EXTERNAL 目录不存在，跳过配置"
+            echo "  BUILDROOT_DIR: $BUILDROOT_DIR"
+            echo "  BR2_EXTERNAL_DIR: $BR2_EXTERNAL_DIR"
+        fi
     else
         echo "未找到板卡配置: $board_conf，使用默认配置。"
     fi

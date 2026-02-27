@@ -1,0 +1,5 @@
+#
+# BR2_EXTERNAL for board_qemu_a
+#
+# This directory contains external packages and configs for board_qemu_a
+#

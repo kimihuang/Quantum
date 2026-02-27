@@ -1,0 +1,2 @@
+config BR2_EXTERNAL_BR2_DIR
+	string

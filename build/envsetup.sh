@@ -79,7 +79,6 @@ function lunch() {
         export BOARD_NAME
         export KERNEL_DEFCONFIG
         export UBOOT_DEFCONFIG
-        export BUILDROOT_DEFCONFIG
         export KERNEL_ARCH
         export UBOOT_ARCH
         export QEMU_MACHINE
@@ -87,6 +86,7 @@ function lunch() {
         export QEMU_SMP
         export QEMU_MEM
         export KERNEL_CMDLINE
+        export BR2_EXTERNAL_DIR
 
         # 根据 BOARD_OUT_DIR 设置所有组件输出目录
         if [ -z "$BOARD_OUT_DIR" ]; then

@@ -40,7 +40,7 @@ fi
 
 # 源码目录
 export BUILDROOT_DIR="$SRC_DIR/buildroot/buildroot-2025.02-rc1"
-export LINUX_DIR="$SRC_DIR/linux-6.1"
+export LINUX_LOCAL_DIR="$SRC_DIR/linux-6.1"
 export TFA_DIR="$SRC_DIR/tf-a"
 export UBOOT_DIR="$SRC_DIR/u-boot"
 export RTTHREAD_DIR="$SRC_DIR/rt-thread"

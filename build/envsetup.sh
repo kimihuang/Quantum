@@ -206,6 +206,65 @@ function lunch() {
     fi
 }
 
+# QEMU 启动 Linux 内核
+function boot() {
+    # 检查是否已选择板卡配置
+    if [ -z "$BOARD_NAME" ]; then
+        echo "错误: 未选择板卡配置，请先运行 lunch 命令"
+        return 1
+    fi
+
+    # 设置内核镜像路径（优先使用 Buildroot 构建的 Image）
+    if [ -f "$BOARD_OUT_DIR/images/Image" ]; then
+        KERNEL_IMAGE="$BOARD_OUT_DIR/images/Image"
+    elif [ -f "$KERNEL_OUT_DIR/arch/$KERNEL_ARCH/boot/Image" ]; then
+        KERNEL_IMAGE="$KERNEL_OUT_DIR/arch/$KERNEL_ARCH/boot/Image"
+    else
+        echo "错误: Linux 内核镜像不存在"
+        echo "  尝试路径1: $BOARD_OUT_DIR/images/Image"
+        echo "  尝试路径2: $KERNEL_OUT_DIR/arch/$KERNEL_ARCH/boot/Image"
+        return 1
+    fi
+
+    # 设置根文件系统路径（优先使用 Buildroot 构建的 cpio）
+    if [ -f "$BOARD_OUT_DIR/images/rootfs.cpio" ]; then
+        ROOTFS_FILE="$BOARD_OUT_DIR/images/rootfs.cpio"
+    elif [ -f "$ROOTFS_OUT_DIR/rootfs.img" ]; then
+        ROOTFS_FILE="$ROOTFS_OUT_DIR/rootfs.img"
+    else
+        echo "错误: 根文件系统镜像不存在"
+        echo "  尝试路径1: $BOARD_OUT_DIR/images/rootfs.cpio"
+        echo "  尝试路径2: $ROOTFS_OUT_DIR/rootfs.img"
+        return 1
+    fi
+
+    echo "======================================"
+    echo "启动 QEMU 运行 Linux 内核..."
+    echo "======================================"
+    echo "板卡: $BOARD_NAME"
+    echo "内核镜像: $KERNEL_IMAGE"
+    echo "根文件系统: $ROOTFS_FILE"
+    echo "QEMU 参数:"
+    echo "  - 机器: $QEMU_MACHINE"
+    echo "  - CPU: $QEMU_CPU"
+    echo "  - SMP: $QEMU_SMP"
+    echo "  - 内存: ${QEMU_MEM}M"
+    echo "  - 内核参数: $KERNEL_CMDLINE"
+    echo "======================================"
+    echo ""
+
+    # 启动 QEMU
+    qemu-system-aarch64 \
+        -M "$QEMU_MACHINE" \
+        -cpu "$QEMU_CPU" \
+        -smp "$QEMU_SMP" \
+        -m "$QEMU_MEM" \
+        -nographic \
+        -kernel "$KERNEL_IMAGE" \
+        -initrd "$ROOTFS_FILE" \
+        -append "$KERNEL_CMDLINE"
+}
+
 # 提供构建目标和板卡选择的帮助信息
 function help() {
     cat << EOF
@@ -257,6 +316,9 @@ QEMU 运行脚本:
     ./scripts/qemu/qemu_kernel.sh     - 在 QEMU 中运行 Linux 内核
     ./scripts/qemu/qemu_uboot.sh       - 在 QEMU 中运行 U-Boot
     ./scripts/qemu/qemu_tfa.sh         - 在 QEMU 中运行 TF-A
+
+快捷启动命令 (需要先执行 lunch):
+    boot                              - 使用 QEMU 启动 Linux 内核
     注意: 运行前请先编译对应的组件，使用 -s -S 参数支持 GDB 调试
 
 输出目录:
@@ -274,5 +336,6 @@ if [ "$ENVSETUP_SHELL" = "bash" ]; then
     # bash 需要显式导出函数
     export -f lunch
     export -f help
+    export -f boot
 fi
 # zsh 中 source 后函数自动可用，无需 export -f

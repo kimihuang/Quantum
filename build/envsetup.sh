@@ -6,19 +6,6 @@ export BUILD_DIR="$PROJECT_ROOT/build"
 export OUT_DIR="$PROJECT_ROOT/out"
 export SRC_DIR="$PROJECT_ROOT/src"
 
-# 检测 shell 类型并设置兼容性
-if [ -n "$ZSH_VERSION" ]; then
-    # zsh 环境
-    autoload -Uz bashcompinit 2>/dev/null || true
-    # zsh 不支持 export -f，函数自动在当前 shell 可用
-    export ENVSETUP_SHELL="zsh"
-elif [ -n "$BASH_VERSION" ]; then
-    # bash 环境
-    export ENVSETUP_SHELL="bash"
-else
-    export ENVSETUP_SHELL="unknown"
-fi
-
 # ARM 交叉编译工具链目录
 export ARM_TOOLCHAIN_DIR="$PROJECT_ROOT/tools/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu"
 
@@ -64,6 +51,12 @@ if [[ ":$PATH:" != *":$BUILD_DIR:"* ]]; then
     export PATH="$PATH:$BUILD_DIR"
 fi
 
+# 加载 help 模块
+if [ -f "$BUILD_DIR/help.sh" ]; then
+    # shellcheck disable=SC1090
+    source "$BUILD_DIR/help.sh"
+fi
+
 # 列出可用板卡
 function list_boards() {
     local i=1
@@ -76,9 +69,40 @@ function list_boards() {
     done
 }
 
-if [ "$ENVSETUP_SHELL" = "bash" ]; then
-    export -f list_boards
-fi
+export -f list_boards
+
+# 配置 Buildroot
+function config_buildroot() {
+    if [ -z "$BOARD_OUT_DIR" ]; then
+        echo "错误: BOARD_OUT_DIR 未设置，请先加载板卡配置"
+        return 1
+    fi
+
+    if [ ! -d "$BUILDROOT_DIR" ]; then
+        echo "警告: Buildroot 源码目录不存在: $BUILDROOT_DIR"
+        return 1
+    fi
+
+    if [ ! -d "$BR2_EXTERNAL_DIR" ]; then
+        echo "警告: BR2_EXTERNAL 目录不存在: $BR2_EXTERNAL_DIR"
+        return 1
+    fi
+
+    echo "正在配置 Buildroot..."
+    mkdir -p "$BOARD_OUT_DIR"
+
+    # 检查 .config 是否已存在
+    if [ -f "$BOARD_OUT_DIR/.config" ]; then
+        echo "Buildroot 配置文件已存在: $BOARD_OUT_DIR/.config"
+        echo "跳过配置，如需重新配置请删除该文件或运行 'make distclean'"
+        echo "修改buildroot 配置后， 请注意更新到$BOARD_DIR/$BUILDROOT_DEFCONFIG  !!!"
+    else
+        make -C "$BUILDROOT_DIR" O="$BOARD_OUT_DIR" BR2_EXTERNAL="$BR2_EXTERNAL_DIR" "$BUILDROOT_DEFCONFIG"
+        echo "Buildroot 配置完成: $BOARD_OUT_DIR/.config"
+    fi
+}
+
+export -f config_buildroot
 
 # 定义构建目标和板卡选择
 function lunch() {
@@ -134,30 +158,16 @@ function lunch() {
             i=$((i+1))
         done
 
-        # 兼容 bash 和 zsh 的 read 提示符语法
-        if [ "$ENVSETUP_SHELL" = "zsh" ]; then
-            # zsh 语法: read "?prompt"
-            read "board_idx?请输入板卡编号（回车默认最后一个）: "
-        else
-            # bash 语法: read -p "prompt"
-            read -p "请输入板卡编号（回车默认最后一个）: " board_idx
-        fi
+        # read 提示符
+        read -p "请输入板卡编号（回车默认最后一个）: " board_idx
 
         if [ -z "$board_idx" ]; then
             board_idx=${#board_list[@]}
         fi
 
-        # 兼容 bash 和 zsh 的数组索引差异
-        # bash: 数组从 0 开始，board_list[0] 是第一个元素
-        # zsh: 数组从 1 开始，board_list[1] 是第一个元素
+        # 数组索引: board_list[0] 是第一个元素
         if [[ "$board_idx" =~ ^[0-9]+$ ]] && (( board_idx >= 1 && board_idx <= ${#board_list[@]} )); then
-            if [ "$ENVSETUP_SHELL" = "zsh" ]; then
-                # zsh 中直接使用索引
-                board="${board_list[board_idx]}"
-            else
-                # bash 中索引需要减 1
-                board="${board_list[board_idx-1]}"
-            fi
+            board="${board_list[board_idx-1]}"
         else
             board="board_default"
         fi
@@ -179,6 +189,10 @@ function lunch() {
         export RTT_OUT_DIR="$BOARD_OUT_DIR/rtt_out"
         export ROOTFS_OUT_DIR="$BOARD_OUT_DIR/rootfs_out"
 
+        # 设置 DTB 文件路径
+        export BOARD_DTS="$BOARD_DIR/qemu-virt.dts"
+        export BOARD_DTB="$BOARD_OUT_DIR/images/qemu-virt.dtb"
+
         echo "已加载板卡配置: $board_conf"
         echo "板卡名称: $BOARD_NAME"
         echo "配置文件:"
@@ -189,22 +203,45 @@ function lunch() {
         echo "输出目录: $BOARD_OUT_DIR"
 
         # 执行 Buildroot defconfig 配置
-        if [ -d "$BUILDROOT_DIR" ] && [ -d "$BR2_EXTERNAL_DIR" ]; then
-            echo ""
-            echo "正在配置 Buildroot..."
-            mkdir -p "$BOARD_OUT_DIR"
-            make -C "$BUILDROOT_DIR" O="$BOARD_OUT_DIR" BR2_EXTERNAL="$BR2_EXTERNAL_DIR" "$BUILDROOT_DEFCONFIG"
-            echo "Buildroot 配置完成: $BOARD_OUT_DIR/.config"
-        else
-            echo ""
-            echo "警告: Buildroot 源码或 BR2_EXTERNAL 目录不存在，跳过配置"
-            echo "  BUILDROOT_DIR: $BUILDROOT_DIR"
-            echo "  BR2_EXTERNAL_DIR: $BR2_EXTERNAL_DIR"
-        fi
+        echo ""
+        config_buildroot
     else
         echo "未找到板卡配置: $board_conf，使用默认配置。"
     fi
 }
+
+# 连接到 QEMU monitor
+function qemu_monitor() {
+    if [ -z "$BOARD_NAME" ]; then
+        echo "错误: 未选择板卡配置，请先运行 lunch 命令"
+        return 1
+    fi
+
+    local qemu_monitor_socket="$BOARD_OUT_DIR/qemu-monitor.sock"
+
+    if [ ! -S "$qemu_monitor_socket" ]; then
+        echo "错误: QEMU monitor socket 不存在"
+        echo "  请先运行 boot monitor 命令启动 QEMU"
+        return 1
+    fi
+
+    echo "连接到 QEMU monitor: $qemu_monitor_socket"
+    echo "常用命令:"
+    echo "  info qtree        - 查看设备树"
+    echo "  info mem          - 查看内存信息"
+    echo "  info cpus         - 查看 CPU 信息"
+    echo "  stop              - 暂停系统"
+    echo "  c                 - 继续运行"
+    echo "  quit              - 退出 QEMU"
+    echo ""
+    echo "输入 Ctrl+D 退出 monitor"
+    echo "======================================"
+    echo ""
+
+    socat - UNIX-CONNECT:"$qemu_monitor_socket"
+}
+
+export -f qemu_monitor
 
 # QEMU 启动 Linux 内核
 function boot() {
@@ -213,6 +250,20 @@ function boot() {
         echo "错误: 未选择板卡配置，请先运行 lunch 命令"
         return 1
     fi
+
+    # 解析参数: monitor
+    local enable_monitor=0
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            monitor)
+                enable_monitor=1
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
 
     # 设置内核镜像路径（优先使用 Buildroot 构建的 Image）
     if [ -f "$BOARD_OUT_DIR/images/Image" ]; then
@@ -238,104 +289,60 @@ function boot() {
         return 1
     fi
 
+    # 设置 QEMU monitor 和设备树导出
+    local qemu_dtb="$BOARD_OUT_DIR/images/qemu-virt.dtb"
+    local qemu_monitor_socket="$BOARD_OUT_DIR/qemu-monitor.sock"
+    local monitor_args=""
+    local dtb_args=""
+
+    # 如果启用 monitor，添加 monitor 参数
+    if [ $enable_monitor -eq 1 ]; then
+        monitor_args="-monitor \"unix:$qemu_monitor_socket,server,nowait\""
+    fi
+
     echo "======================================"
     echo "启动 QEMU 运行 Linux 内核..."
     echo "======================================"
     echo "板卡: $BOARD_NAME"
     echo "内核镜像: $KERNEL_IMAGE"
     echo "根文件系统: $ROOTFS_FILE"
+    echo "QEMU Monitor: $([ $enable_monitor -eq 1 ] && echo "启用 ($qemu_monitor_socket)" || echo "未启用")"
     echo "QEMU 参数:"
     echo "  - 机器: $QEMU_MACHINE"
     echo "  - CPU: $QEMU_CPU"
     echo "  - SMP: $QEMU_SMP"
     echo "  - 内存: ${QEMU_MEM}M"
     echo "  - 内核参数: $KERNEL_CMDLINE"
+    if [ $enable_monitor -eq 1 ]; then
+        echo ""
+        echo "导出设备树 (在 QEMU monitor 中):"
+        echo "  在另一个终端运行: qemu_monitor"
+        echo "  然后在 monitor 中执行: info qtree"
+    fi
+    # 如果 DTB 存在，则使用自定义 DTB
+    if [ -f "$qemu_dtb" ]; then
+        dtb_args="-dtb \"$qemu_dtb\""
+        echo "设备树: 使用自定义 DTB ($qemu_dtb)"
+    else
+        echo "设备树: 使用 QEMU 自动生成的设备树"
+    fi
     echo "======================================"
     echo ""
 
-    # 启动 QEMU
-    qemu-system-aarch64 \
-        -M "$QEMU_MACHINE" \
-        -cpu "$QEMU_CPU" \
-        -smp "$QEMU_SMP" \
-        -m "$QEMU_MEM" \
+    # 启动 QEMU（带可选 monitor 和 DTB 支持）
+    eval "qemu-system-aarch64 \
+        -M \"$QEMU_MACHINE\" \
+        -cpu \"$QEMU_CPU\" \
+        -smp \"$QEMU_SMP\" \
+        -m \"$QEMU_MEM\" \
         -nographic \
-        -kernel "$KERNEL_IMAGE" \
-        -initrd "$ROOTFS_FILE" \
-        -append "$KERNEL_CMDLINE"
-}
-
-# 提供构建目标和板卡选择的帮助信息
-function help() {
-    cat << EOF
-用法:
-    1. 首先初始化构建环境: source build/envsetup.sh
-    2. 下载源码: ./scripts/download.sh [all|tfa|uboot|kernel|buildroot|rt-thread]
-    3. 选择目标板卡: lunch
-    4. 编译目标组件
-    5. (可选) 运行 QEMU 调试
-
-板卡配置:
-    lunch 命令会列出可用的板卡配置:
-    - board_qemu_a - QEMU板卡A配置 (4核, 1GB内存, cortex-a57)
-    - board_qemu_b - QEMU板卡B配置 (2核, 2GB内存, cortex-a57, preempt)
-    - board_default - 默认板卡配置 (4核, 1GB内存, cortex-a57)
-
-    通过输入编号选择对应的板卡配置文件 (board/<board_name>.conf)
-    板卡配置包含:
-      - 配置文件: kernel_defconfig, uboot_defconfig, buildroot_defconfig
-      - 板卡参数: QEMU_MACHINE, QEMU_CPU, QEMU_SMP, QEMU_MEM, KERNEL_CMDLINE
-
-源码下载:
-    ./scripts/download.sh all        - 下载所有组件源码
-    ./scripts/download.sh tfa       - 下载 TF-A 源码
-    ./scripts/download.sh uboot     - 下载 U-Boot 源码
-    ./scripts/download.sh kernel    - 下载 Linux 内核源码
-    ./scripts/download.sh buildroot - 下载 Buildroot 源码
-    ./scripts/download.sh rt-thread - 下载 RT-Thread 源码
-    ./scripts/download.sh mbedtls   - 下载 MbedTLS 源码 (TF-A 依赖)
-    ./scripts/download.sh busybox   - 下载 Busybox 源码 (Rootfs)
-    源码将下载到 src/ 目录下
-
-Makefile 构建目标:
-    make all        - 编译所有组件 (当前为 buildroot)
-    make buildroot  - 编译 Buildroot 根文件系统
-    make clean      - 清理编译输出
-    make distclean  - 完全清理 (包括配置)
-    make menuconfig - 配置 Buildroot
-
-独立构建脚本:
-    ./scripts/build/build_tf-a.sh     - 编译 TF-A (Trusted Firmware-A)
-    ./scripts/build/build_uboot.sh    - 编译 U-Boot 引导程序
-    ./scripts/build/build_kernel.sh   - 编译 Linux 内核
-    ./scripts/build/build_rtthread.sh - 编译 RT-Thread 实时操作系统
-    ./scripts/build/build_rootfs.sh   - 编译 Busybox Rootfs
-    注意: 构建前请确保对应的源码已下载到 src/ 目录
-
-QEMU 运行脚本:
-    ./scripts/qemu/qemu_kernel.sh     - 在 QEMU 中运行 Linux 内核
-    ./scripts/qemu/qemu_uboot.sh       - 在 QEMU 中运行 U-Boot
-    ./scripts/qemu/qemu_tfa.sh         - 在 QEMU 中运行 TF-A
-
-快捷启动命令 (需要先执行 lunch):
-    boot                              - 使用 QEMU 启动 Linux 内核
-    注意: 运行前请先编译对应的组件，使用 -s -S 参数支持 GDB 调试
-
-输出目录:
-    编译产物将存放在 out/ 目录下
-
-编译工具链:
-    ARM 工具链: $ARM_TOOLCHAIN_DIR
-    交叉编译前缀: $CROSS_COMPILE
-    注意: 如果本地工具链不存在，将使用系统默认工具链 aarch64-linux-gnu-
-EOF
+        $monitor_args \
+        -kernel \"$KERNEL_IMAGE\" \
+        $dtb_args \
+        -initrd \"$ROOTFS_FILE\" \
+        -append \"$KERNEL_CMDLINE\""
 }
 
 # 使函数可用
-if [ "$ENVSETUP_SHELL" = "bash" ]; then
-    # bash 需要显式导出函数
-    export -f lunch
-    export -f help
-    export -f boot
-fi
-# zsh 中 source 后函数自动可用，无需 export -f
+export -f lunch
+export -f boot

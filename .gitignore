@@ -1,0 +1,58 @@
+# Build output directory
+out/
+
+# Source code directory
+src/
+
+# Documentation patterns
+docs/design_patterns/
+
+# Repo sync directory
+.repo/
+
+# Build artifacts
+*.o
+*.ko
+*.mod
+*.mod.c
+*.i
+*.lst
+*.symvers
+*.order
+*.elf
+*.bin
+*.img
+*.dtb
+*.dts
+
+# Compiled kernel images
+Image
+zImage
+vmlinuz
+System.map
+Module.symvers
+
+# Cross compilation toolchain
+tools/arm-gnu-toolchain-*/
+
+# Editor files
+*.swp
+*.swo
+*~
+.vim/
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace
+
+# Buildroot
+*.config.old
+.config
+
+# QEMU
+*.sock
+
+# Backup files
+*.bak
+*.backup

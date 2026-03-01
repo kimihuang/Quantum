@@ -28,6 +28,7 @@ fi
 # 源码目录
 export BUILDROOT_DIR="$SRC_DIR/buildroot/buildroot-2025.02-rc1"
 export LINUX_LOCAL_DIR="$SRC_DIR/linux-6.1"
+export LINUX_ARCH_ARM64="$SRC_DIR/linux_arch_arm64/arch"
 export TFA_DIR="$SRC_DIR/tf-a"
 export UBOOT_DIR="$SRC_DIR/u-boot"
 export RTTHREAD_DIR="$SRC_DIR/rt-thread"
@@ -202,8 +203,17 @@ function lunch() {
         echo "板卡参数: QEMU=$QEMU_MACHINE, CPU=$QEMU_CPU, SMP=$QEMU_SMP, MEM=$QEMU_MEM MB"
         echo "输出目录: $BOARD_OUT_DIR"
 
-        # 执行 Buildroot defconfig 配置
+        # 执行预构建脚本
         echo ""
+        local pre_build_script="$BOARD_DIR/pre_build.sh"
+        if [ -f "$pre_build_script" ]; then
+            echo "执行预构建脚本: $pre_build_script"
+            # shellcheck disable=SC1090
+            source "$pre_build_script"
+            echo ""
+        fi
+
+        # 执行 Buildroot defconfig 配置
         config_buildroot
     else
         echo "未找到板卡配置: $board_conf，使用默认配置。"

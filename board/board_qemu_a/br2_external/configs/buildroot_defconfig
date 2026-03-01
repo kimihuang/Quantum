@@ -4,8 +4,8 @@
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_EXTERNAL_NAMES="BR2_BOARD"
-BR2_EXTERNAL_BR2_BOARD_PATH="/workspaces/codespaces-blank/quantum/board/board_qemu_a/br2_external"
-BR2_EXTERNAL_BR2_BOARD_VERSION="-g5330231-dirty"
+BR2_EXTERNAL_BR2_BOARD_PATH="/home/lion/workdir/sourcecode/quantum/board/board_qemu_a/br2_external"
+BR2_EXTERNAL_BR2_BOARD_VERSION="-g94314e4"
 BR2_HOST_GCC_AT_LEAST_4_9=y
 BR2_HOST_GCC_AT_LEAST_5=y
 BR2_HOST_GCC_AT_LEAST_6=y
@@ -2872,7 +2872,18 @@ BR2_PACKAGE_XVISOR_ARCH_SUPPORTS=y
 # BR2_TARGET_ROOTFS_AXFS is not set
 # BR2_TARGET_ROOTFS_BTRFS is not set
 # BR2_TARGET_ROOTFS_CLOOP is not set
-# BR2_TARGET_ROOTFS_CPIO is not set
+BR2_TARGET_ROOTFS_CPIO=y
+BR2_TARGET_ROOTFS_CPIO_FULL=y
+# BR2_TARGET_ROOTFS_CPIO_DRACUT is not set
+BR2_TARGET_ROOTFS_CPIO_NONE=y
+# BR2_TARGET_ROOTFS_CPIO_GZIP is not set
+# BR2_TARGET_ROOTFS_CPIO_BZIP2 is not set
+# BR2_TARGET_ROOTFS_CPIO_LZ4 is not set
+# BR2_TARGET_ROOTFS_CPIO_LZMA is not set
+# BR2_TARGET_ROOTFS_CPIO_LZO is not set
+# BR2_TARGET_ROOTFS_CPIO_XZ is not set
+# BR2_TARGET_ROOTFS_CPIO_ZSTD is not set
+# BR2_TARGET_ROOTFS_CPIO_UIMAGE is not set
 # BR2_TARGET_ROOTFS_CRAMFS is not set
 # BR2_TARGET_ROOTFS_EROFS is not set
 # BR2_TARGET_ROOTFS_EXT2 is not set
@@ -3972,5 +3983,5 @@ BR2_TARGET_UBOOT_CUSTOM_PATCH_DIR=""
 #
 
 #
-# br2_board configs (in /workspaces/codespaces-blank/quantum/board/board_qemu_a/br2_external)
+# br2_board configs (in /home/lion/workdir/sourcecode/quantum/board/board_qemu_a/br2_external)
 #

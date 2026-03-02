@@ -300,7 +300,7 @@ function boot() {
     fi
 
     # 设置 QEMU monitor 和设备树导出
-    local qemu_dtb="$BOARD_OUT_DIR/images/qemu-virt.dtb"
+    local qemu_dtb="$BOARD_OUT_DIR/images/quantum_qemu.dtb"
     local qemu_monitor_socket="$BOARD_OUT_DIR/qemu-monitor.sock"
     local monitor_args=""
     local dtb_args=""

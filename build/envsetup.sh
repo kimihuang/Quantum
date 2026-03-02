@@ -36,14 +36,6 @@ export MBEDTLS_DIR="$SRC_DIR/mbedtls"
 export BUSYBOX_VERSION="1.36.1"
 export BUSYBOX_DIR="$SRC_DIR/busybox-$BUSYBOX_VERSION"
 
-# 输出目录（这些将在 lunch 中动态设置）
-TFA_OUT_DIR=
-UBOOT_OUT_DIR=
-KERNEL_OUT_DIR=
-RTT_OUT_DIR=
-ROOTFS_OUT_DIR=
-BOARD_OUT_DIR=
-
 # QEMU 运行脚本目录
 export QEMU_SCRIPTS_DIR="$PROJECT_ROOT/scripts/qemu"
 
@@ -184,15 +176,16 @@ function lunch() {
         if [ -z "$BOARD_OUT_DIR" ]; then
             BOARD_OUT_DIR="$OUT_DIR/$board"
         fi
-        export TFA_OUT_DIR="$BOARD_OUT_DIR/tf-a_out"
-        export UBOOT_OUT_DIR="$BOARD_OUT_DIR/uboot_out"
-        export KERNEL_OUT_DIR="$BOARD_OUT_DIR/kernel_out"
-        export RTT_OUT_DIR="$BOARD_OUT_DIR/rtt_out"
-        export ROOTFS_OUT_DIR="$BOARD_OUT_DIR/rootfs_out"
 
-        # 设置 DTB 文件路径
-        export BOARD_DTS="$BOARD_DIR/qemu-virt.dts"
-        export BOARD_DTB="$BOARD_OUT_DIR/images/qemu-virt.dtb"
+        BOARD_OUT_DIR="$OUT_DIR/$BOARD_NAME"
+
+        # 可选: 加载 shell_build.sh（不推荐使用）
+        # 注意: shell_build.sh 提供了构建变量的引用，但不建议使用
+        # 推荐使用 Makefile 进行构建: make, make modules, make modules-clean
+        # 如需使用，请取消下面注释:
+        # if [ -f "$BUILD_DIR/shell_build.sh" ]; then
+        #     source "$BUILD_DIR/shell_build.sh"
+        # fi
 
         echo "已加载板卡配置: $board_conf"
         echo "板卡名称: $BOARD_NAME"
@@ -278,24 +271,18 @@ function boot() {
     # 设置内核镜像路径（优先使用 Buildroot 构建的 Image）
     if [ -f "$BOARD_OUT_DIR/images/Image" ]; then
         KERNEL_IMAGE="$BOARD_OUT_DIR/images/Image"
-    elif [ -f "$KERNEL_OUT_DIR/arch/$KERNEL_ARCH/boot/Image" ]; then
-        KERNEL_IMAGE="$KERNEL_OUT_DIR/arch/$KERNEL_ARCH/boot/Image"
     else
         echo "错误: Linux 内核镜像不存在"
-        echo "  尝试路径1: $BOARD_OUT_DIR/images/Image"
-        echo "  尝试路径2: $KERNEL_OUT_DIR/arch/$KERNEL_ARCH/boot/Image"
+        echo "  尝试路径: $BOARD_OUT_DIR/images/Image"
         return 1
     fi
 
     # 设置根文件系统路径（优先使用 Buildroot 构建的 cpio）
     if [ -f "$BOARD_OUT_DIR/images/rootfs.cpio" ]; then
         ROOTFS_FILE="$BOARD_OUT_DIR/images/rootfs.cpio"
-    elif [ -f "$ROOTFS_OUT_DIR/rootfs.img" ]; then
-        ROOTFS_FILE="$ROOTFS_OUT_DIR/rootfs.img"
     else
         echo "错误: 根文件系统镜像不存在"
-        echo "  尝试路径1: $BOARD_OUT_DIR/images/rootfs.cpio"
-        echo "  尝试路径2: $ROOTFS_OUT_DIR/rootfs.img"
+        echo "  尝试路径: $BOARD_OUT_DIR/images/rootfs.cpio"
         return 1
     fi
 

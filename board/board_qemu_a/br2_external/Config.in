@@ -3,3 +3,8 @@
 #
 # This directory contains external packages and configs for board_qemu_a
 #
+
+menu "Quantum Board Packages"
+	source "$BR2_EXTERNAL_BR2_BOARD_PATH/package/demo-app/Config.in"
+	source "$BR2_EXTERNAL_BR2_BOARD_PATH/package/demo-module/Config.in"
+endmenu

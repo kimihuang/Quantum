@@ -1,0 +1,10 @@
+config BR2_PACKAGE_DEMO_APP
+	bool "demo-app"
+	help
+	  Demo application for Quantum board.
+	  This is a simple example package to demonstrate
+	  Buildroot external package infrastructure.
+
+	  To compile this package as a module, select the
+	  option to build kernel modules in the Linux kernel
+	  configuration.

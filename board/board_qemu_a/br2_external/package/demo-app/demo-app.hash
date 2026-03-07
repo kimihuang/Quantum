@@ -1,0 +1,3 @@
+# Hash files for demo-app
+# For local packages, this can be empty or contain SHA256 of local files
+sha256  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  COPYING

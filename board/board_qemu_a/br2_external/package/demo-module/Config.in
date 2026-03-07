@@ -1,0 +1,10 @@
+config BR2_PACKAGE_DEMO_MODULE
+	bool "demo-module"
+	select BR2_LINUX_KERNEL
+	help
+	  Demo kernel module for Quantum board.
+	  This package demonstrates how to add kernel modules
+	  to Buildroot external packages.
+
+	  Note: This requires kernel modules support enabled
+	  in the Linux kernel configuration.

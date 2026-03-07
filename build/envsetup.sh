@@ -103,13 +103,6 @@ function lunch() {
     local board_idx
     local board
 
-    # 检测是否为交互式 shell
-    if [[ ! -t 0 ]]; then
-        echo "错误: lunch 需要在交互式终端中运行"
-        echo "用法: source build/envsetup.sh 后执行 lunch"
-        return 1
-    fi
-
     # 支持命令行参数: lunch <board_name> 或 lunch <board_idx>
     if [ $# -ge 1 ]; then
         local input="$1"

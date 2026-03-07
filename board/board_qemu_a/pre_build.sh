@@ -55,8 +55,8 @@ if [ -d "$PROJECT_ROOT/src/modules" ]; then
     KCONFIG_FILE="$LINUX_DRIVERS_DIR/Kconfig"
     if ! grep -q "source \"drivers/modules/Kconfig\"" "$KCONFIG_FILE"; then
         echo "更新 drivers/Kconfig 添加 modules 引用"
-        # 在 endmenu 之前插入 source 行
-        sed -i '/^endmenu$/i source "drivers/modules/Kconfig"' "$KCONFIG_FILE"
+        # 在 menu "Device Drivers" 之后插入 source 行，方便在图形界面快速找到
+        sed -i '/^menu "Device Drivers"$/a source "drivers/modules/Kconfig"' "$KCONFIG_FILE"
     fi
 
     # 更新 drivers/Makefile，添加 modules 的引用

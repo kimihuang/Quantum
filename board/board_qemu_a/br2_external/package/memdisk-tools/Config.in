@@ -1,0 +1,46 @@
+config BR2_PACKAGE_MEMDISK_TOOLS
+	bool "memdisk image"
+	help
+	  Create memdisk.img for Quantum board.
+	  This package creates an ext4 memdisk image that can be used for
+	  testing purposes.
+
+if BR2_PACKAGE_MEMDISK_TOOLS
+
+choice
+	prompt "Memdisk size"
+	default BR2_PACKAGE_MEMDISK_SIZE_256M
+	help
+	  Select the size of the memdisk image.
+
+config BR2_PACKAGE_MEMDISK_SIZE_64M
+	bool "64 MB"
+config BR2_PACKAGE_MEMDISK_SIZE_128M
+	bool "128 MB"
+config BR2_PACKAGE_MEMDISK_SIZE_256M
+	bool "256 MB"
+config BR2_PACKAGE_MEMDISK_SIZE_512M
+	bool "512 MB"
+config BR2_PACKAGE_MEMDISK_SIZE_1G
+	bool "1 GB"
+
+endchoice
+
+config BR2_PACKAGE_MEMDISK_SIZE
+	string
+	default "64M"  if BR2_PACKAGE_MEMDISK_SIZE_64M
+	default "128M" if BR2_PACKAGE_MEMDISK_SIZE_128M
+	default "256M" if BR2_PACKAGE_MEMDISK_SIZE_256M
+	default "512M" if BR2_PACKAGE_MEMDISK_SIZE_512M
+	default "1G"   if BR2_PACKAGE_MEMDISK_SIZE_1G
+
+config BR2_PACKAGE_MEMDISK_DEPENDENCIES
+	string "Packages that copy files to memdisk staging directory"
+	default "demo-app"
+	help
+	  Space-separated list of packages that need to copy files to
+	  the memdisk staging directory. These packages will be built
+	  before memdisk-tools to ensure their files are available.
+	  Example: "demo-app my-app"
+
+endif

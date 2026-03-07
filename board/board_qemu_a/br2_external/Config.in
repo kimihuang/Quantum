@@ -7,4 +7,5 @@
 menu "Quantum Board Packages"
 	source "$BR2_EXTERNAL_BR2_BOARD_PATH/package/demo-app/Config.in"
 	source "$BR2_EXTERNAL_BR2_BOARD_PATH/package/demo-module/Config.in"
+	source "$BR2_EXTERNAL_BR2_BOARD_PATH/package/memdisk-tools/Config.in"
 endmenu

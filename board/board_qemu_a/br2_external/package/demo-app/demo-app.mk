@@ -18,4 +18,18 @@ define DEMO_APP_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/demo-app $(TARGET_DIR)/usr/bin/demo-app
 endef
 
+define DEMO_APP_INSTALL_TO_MEMDISK
+	# Example: Copy demo-app executable to memdisk staging directory
+	if [ -d "$(BUILD_DIR)/memdisk-staging" ]; then \
+		$(INSTALL) -D -m 0755 $(@D)/demo-app \
+			$(BUILD_DIR)/memdisk-staging/data/demo-app; \
+		echo "Copied demo-app to memdisk staging directory"; \
+	fi
+endef
+
+# Hook to install to memdisk before memdisk package builds
+ifeq ($(BR2_PACKAGE_MEMDISK_TOOLS),y)
+DEMO_APP_POST_INSTALL_TARGET_HOOKS += DEMO_APP_INSTALL_TO_MEMDISK
+endif
+
 $(eval $(generic-package))

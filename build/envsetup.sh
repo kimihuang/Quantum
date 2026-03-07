@@ -190,13 +190,13 @@ function lunch() {
         echo "板卡参数: QEMU=$QEMU_MACHINE, CPU=$QEMU_CPU, SMP=$QEMU_SMP, MEM=$QEMU_MEM MB"
         echo "输出目录: $BOARD_OUT_DIR"
 
-        # 执行预构建脚本
+        # 执行预构建脚
         echo ""
-        local pre_build_script="$BOARD_DIR/pre_build.sh"
-        if [ -f "$pre_build_script" ]; then
-            echo "执行预构建脚本: $pre_build_script"
+        local setup_linux_script="$BOARD_DIR/setup_linux.sh"
+        if [ -f "$setup_linux_script" ]; then
+            echo "执行 Linux 设置脚本: $setup_linux_script"
             # shellcheck disable=SC1090
-            source "$pre_build_script"
+            source "$setup_linux_script"
             echo ""
         fi
 

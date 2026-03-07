@@ -35,6 +35,7 @@ export RTTHREAD_DIR="$SRC_DIR/rt-thread"
 export MBEDTLS_DIR="$SRC_DIR/mbedtls"
 export BUSYBOX_VERSION="1.36.1"
 export BUSYBOX_DIR="$SRC_DIR/busybox-$BUSYBOX_VERSION"
+export UBOOT_SRC_DIR="$SRC_DIR/u-boot-2026.01-rc5"
 
 # QEMU 运行脚本目录
 export QEMU_SCRIPTS_DIR="$PROJECT_ROOT/scripts/qemu"

@@ -12,6 +12,9 @@ MEMDISK_TOOLS_LICENSE = GPL-2.0
 # Memdisk staging directory path for other packages to copy files
 MEMDISK_STAGING_DIR = $(BUILD_DIR)/memdisk-staging
 
+# Export memdisk_extract script for host tools
+MEMDISK_EXTRACT_SCRIPT = $(TOPDIR)/../../../scripts/extract_memdisk.sh
+
 # Depend on all packages that may copy files to memdisk staging directory
 # This ensures memdisk-tools is built after all other packages
 MEMDISK_TOOLS_DEPENDENCIES += $(call qstrip,$(BR2_PACKAGE_MEMDISK_DEPENDENCIES))
@@ -52,6 +55,10 @@ define MEMDISK_TOOLS_INSTALL_TARGET_CMDS
 	# Install memdisk.img to images directory
 	$(INSTALL) -D -m 0644 $(@D)/memdisk.img $(BINARIES_DIR)/memdisk.img
 	@echo "memdisk.img installed to $(BINARIES_DIR)/memdisk.img"
+
+	# Install memdisk_extract script to host directory for other packages to use
+	$(INSTALL) -D -m 0755 $(MEMDISK_EXTRACT_SCRIPT) $(HOST_DIR)/bin/memdisk_extract
+	@echo "memdisk_extract script installed to $(HOST_DIR)/bin/memdisk_extract"
 endef
 
 $(eval $(generic-package))

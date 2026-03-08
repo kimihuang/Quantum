@@ -27,15 +27,12 @@ fi
 
 # 源码目录
 export BUILDROOT_DIR="$SRC_DIR/buildroot/buildroot-2025.02-rc1"
-export LINUX_LOCAL_DIR="$SRC_DIR/linux-6.1"
-export LINUX_ARCH_ARM64="$SRC_DIR/linux_arch_arm64/arch"
 export TFA_DIR="$SRC_DIR/tf-a"
 export UBOOT_DIR="$SRC_DIR/u-boot"
 export RTTHREAD_DIR="$SRC_DIR/rt-thread"
 export MBEDTLS_DIR="$SRC_DIR/mbedtls"
 export BUSYBOX_VERSION="1.36.1"
 export BUSYBOX_DIR="$SRC_DIR/busybox-$BUSYBOX_VERSION"
-export UBOOT_SRC_DIR="$SRC_DIR/u-boot-2026.01-rc5"
 
 # QEMU 运行脚本目录
 export QEMU_SCRIPTS_DIR="$PROJECT_ROOT/scripts/qemu"

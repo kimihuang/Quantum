@@ -11,6 +11,12 @@
 # - BUILD_DIR: Path to build directory
 # - BINARIES_DIR: Path to images directory
 #
+# Board environment variables (from board conf):
+# - BOARD_NAME: Board name (e.g., board_qemu_a)
+# - BOARD_DIR: Board configuration directory
+# - PROJECT_ROOT: Project root directory
+# - HOOKS_DIR: Hook scripts directory
+#
 
 #set -e
 

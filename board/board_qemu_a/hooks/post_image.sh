@@ -12,6 +12,12 @@
 # - BINARIES_DIR: Path to images directory
 # - IMAGES: List of generated images (optional, depends on context)
 #
+# Board environment variables (from board conf):
+# - BOARD_NAME: Board name (e.g., board_qemu_a)
+# - BOARD_DIR: Board configuration directory
+# - PROJECT_ROOT: Project root directory
+# - HOOKS_DIR: Hook scripts directory
+#
 
 #set -e
 

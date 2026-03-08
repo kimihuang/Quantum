@@ -1,8 +1,0 @@
-# U-Boot defconfig for board_default
-# Target: QEMU ARM64 virt platform - default configuration
-
-CONFIG_ARM64=y
-CONFIG_TARGET_QEMU=y
-CONFIG_TARGET_QEMU_ARM64=y
-CONFIG_SYS_TEXT_BASE=0x40000000
-CONFIG_IDENT_STRING=" QEMU ARM64 default"

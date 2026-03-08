@@ -10,7 +10,8 @@ MEMDISK_SIZE=268435456  # 256MB in bytes
 
 # 主机端 memdisk.img 路径
 PROJECT_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-HOST_MEMDISK="$PROJECT_ROOT/out/images/memdisk.img"
+BOARD_NAME="${BOARD_NAME:-board_qemu_a}"
+HOST_MEMDISK="$PROJECT_ROOT/out/$BOARD_NAME/images/memdisk.img"
 
 # 显示帮助信息
 show_help() {
@@ -110,6 +111,8 @@ copy_to_mem() {
     echo ""
     echo "  # 使用 dd 拷贝数据"
     echo "  dd if=/path/to/file of=/dev/mem bs=1k seek=\$((0x78000000 / 1024))"
+    echo ""
+    echo "环境变量: BOARD_NAME=${BOARD_NAME:-board_qemu_a}"
 }
 
 # 从 QEMU 内存导出（通过 QEMU monitor）

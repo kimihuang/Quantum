@@ -8,7 +8,8 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 默认 memdisk.img 路径
-DEFAULT_MEMDISK_IMG="out/board_qemu_a/images/memdisk.img"
+BOARD_NAME="${BOARD_NAME:-board_qemu_a}"
+DEFAULT_MEMDISK_IMG="out/${BOARD_NAME}/images/memdisk.img"
 
 ################################################################################
 # memdisk_extract 函数
@@ -86,12 +87,12 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         echo ""
         echo "Examples:"
         echo "  $0"
-        echo "  $0 out/board_qemu_a/images/memdisk.img"
-        echo "  $0 out/board_qemu_a/images/memdisk.img /tmp/my_memdisk"
+        echo "  BOARD_NAME=board_qemu_a $0 out/\${BOARD_NAME}/images/memdisk.img"
+        echo "  $0 out/\${BOARD_NAME}/images/memdisk.img /tmp/my_memdisk"
         echo ""
         echo "Or source this script and use the function:"
         echo "  source scripts/extract_memdisk.sh"
-        echo "  memdisk_extract out/board_qemu_a/images/memdisk.img"
+        echo "  memdisk_extract out/\${BOARD_NAME}/images/memdisk.img"
         exit 0
     fi
 
